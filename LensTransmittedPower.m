@@ -22,29 +22,24 @@ k = 2*pi / wlen;                % Magnitude of wave number [rad/m]
 kd = k * sqrt(erd);             % Magnitude of wave number inside lens [rad/m]
 Z = sqrt( u0 / (e0 * er) );     % Wave impedance [Ohm]
 Zd = Z / sqrt(erd);             % Wave impedance inside lens [Ohm]
+D = 10 * wlen;                  % Diameter of lens [m]
 
-%% Calculate Crticial Angle
-thc = asin( 1 / sqrt(erd) );
+%% Calculate Lens Parameters
+[ e, a, b, c, thc, RHO, ...
+           drho, PH, dph, TH, THi ] = calculateLensParameters( D, erd, N );
 
-%% Theta and Phi-Components of Spherical Cooridnates
-th = linspace(eps, thc, N);
-dth = th(2) - th(1);
-ph = linspace(eps, 2 * pi, N);
-dph = ph(2) - ph(1);
-[ TH, PH ] = meshgrid(th, ph);
-
-%% Calculate Fresnel Transmission Coefficients
-[ Tper, Tpar, THt ] = calculateFresnelTCoeff( TH, erd );
+%% Calculate Fresnel Transmission Coefficiencts
+[ Tper, Tpar, THt ] = calculateFresnelTCoeff( THi, erd );
 
 %% Calculate Transmitted Power Ratio
-[ Prper, Prpar ] = calculateTPowerRatio( Tper, Tpar, TH, THt, erd );
+[ Prper, Prpar ] = calculateTPowerRatio( Tper, Tpar, THi, THt, erd );
 
 %% Plot
 figure();
-plot( th * 180 / pi, Prper(1, :), 'LineWidth', 3.0 );
+plot( TH(1, :) * 180 / pi, Prper(1, :), 'LineWidth', 3.0 );
 hold on;
-plot( th * 180 / pi, Prpar(1, :), 'LineWidth', 3.0 );
+plot( TH(1, :) * 180 / pi, Prpar(1, :), 'LineWidth', 3.0 );
 grid on;
 xlabel('\theta_{i} [deg]'); 
 legend('P_{t}^{TE} / P_{i}^{TE}', 'P_{t}^{TM} / P_{t}^{TM}');
-xlim([0 max(th * 180 / pi)]);
+xlim([0 max( TH(1, :) * 180 / pi )]);
