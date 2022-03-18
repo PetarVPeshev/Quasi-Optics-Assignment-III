@@ -9,7 +9,7 @@ function [ Jft ] = calculateCylFTCurrent( J, KX, KY, RHO, PH )
     dph = PH(2, 1) - PH(1, 1);
     %% Calculate Size of Matrix Partition
     N = 1;
-    m = 100;
+    m = 50;
     if size(KX, 1) > m
         N = size(KX, 1) / m;
         remN = rem( size(KX, 1), m );

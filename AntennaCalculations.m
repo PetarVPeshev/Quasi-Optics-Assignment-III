@@ -4,7 +4,7 @@ clc;
 
 %% Constants and Parameters
 % Indecies
-N = 100;                        % Number of sample points
+N = 200;                        % Number of sample points
 % Field Parameters
 f = 300 * 1e9;                  % Source frequency [Hz]
 R = 1;                          % Radial distance [m]
@@ -72,7 +72,7 @@ THi = acos( ( 1 - e * cos(TH) ) ./ sqrt( 1 + e^2 - 2 * e * cos(TH) ) );
 r = a * ( 1 - e^2 ) ./ ( 1 - e * cos(TH) );
 
 %% Calculate Feed Electric Far-Field of Feed
-[ Ef, ~ ] = calculateLensFeed( R, TH, PH, kd, Zd, n );
+[ Ef, Pfrad ] = calculateLensFeed( R, TH, PH, kd, Zd, n );
 Ef = Ef * R / exp(-1j * kd * R);
 
 %% Calculate Fresnel Transmission Coefficients
@@ -109,22 +109,22 @@ plotFarfield(Eun, THf, PHf);
 caxis([-40, 0]);
 zlim([-150 0]);
 
-%% Plot in 1D
+%% Plot Far-Field in 1D
 % Define Theta from - Theta_max to Theta_max
 thp = zeros( 1, 2 * size(THf, 2) );
 thp( size(THf, 2) + 1 : end ) = THf(1, :);
 thp( 1 : size(THf, 2) ) = - rot90( THf(1, :), 2 );
 % Extract E field magnitude and uniform E field
 Eth = zeros( 1, size(thp, 2) );
-Eth( size(E, 2) + 1 : end ) = sqrt( abs( E(51, :, 1) ).^2 + ...
-                           abs( E(51, :, 2) ).^2 + abs( E(51, :, 3) ).^2 );
-Eth( 1 : size(E, 2) ) = rot90(sqrt( abs( E(1, :, 1) ).^2 + ...
-                     abs( E(1, :, 2) ).^2 + abs( E(1, :, 3) ).^2 ), 2);
+Eth( 1 : size(E, 2) ) = rot90( sqrt( abs( E(101, :, 1) ).^2 + ...
+                    abs( E(101, :, 2) ).^2 + abs( E(101, :, 3) ).^2 ), 2 );
+Eth( size(E, 2) + 1 : end ) = sqrt( abs( E(1, :, 1) ).^2 + ...
+                             abs( E(1, :, 2) ).^2 + abs( E(1, :, 3) ).^2 );
 Euth = zeros( 1, size(thp, 2) );
-Euth( size(E, 2) + 1 : end ) = sqrt( abs( Eun(51, :, 1) ).^2 + ...
-                       abs( Eun(51, :, 2) ).^2 + abs( Eun(51, :, 3) ).^2 );
-Euth( 1 : size(E, 2) ) = rot90(sqrt( abs( Eun(1, :, 1) ).^2 + ...
-                     abs( Eun(1, :, 2) ).^2 + abs( Eun(1, :, 3) ).^2 ), 2);
+Euth( 1 : size(E, 2) ) = rot90( sqrt( abs( Eun(101, :, 1) ).^2 + ...
+                 abs( Eun(101, :, 2) ).^2 + abs( Eun(101, :, 3) ).^2 ), 2);
+Euth( size(E, 2) + 1 : end ) = sqrt( abs( Eun(1, :, 1) ).^2 + ...
+                         abs( Eun(1, :, 2) ).^2 + abs( Eun(1, :, 3) ).^2 );
 % Plot (normalized to uniform current field maximum)
 figure();
 plot(thp * 180 / pi, 20 * log10( Eth ) - max( 20 * log10( Euth ) ), ...
@@ -136,7 +136,8 @@ grid on;
 xlabel('\theta [deg]');
 ylabel('[dB]');
 xlim([min(thp * 180 / pi) max(thp * 180 / pi)]);
-ylim([-60 0]);
+xlim([-40 40]);
+ylim([-40 0]);
 legend('|E|', '|E_{un}|');
 title('XZ Plane');
 % Plot (normalized to own maximum)
@@ -149,8 +150,43 @@ plot(thp * 180 / pi, 20 * log10( Euth ) - max( 20 * log10( Euth ) ), ...
 grid on;
 xlabel('\theta [deg]');
 ylabel('[dB]');
-xlim([min(thp * 180 / pi) max(thp * 180 / pi)]);
+xlim([-40 40]);
 ylim([-40 0]);
 legend('|E|', '|E_{un}|');
 title('XZ Plane');
 
+%% Calculate Radiation Intensity and Radiation Power
+Et = abs( E(:, :, 1) ) .^2 + abs( E(:, :, 2) ) .^2 + abs( E(:, :, 3) ) .^2;
+U = Et * (R ^ 2) / (2 * Z);
+Prad = sum( sum( U .* sin(THf) ) ) * dthf * dphf;
+
+%% Calculate Directivity
+D = 4 * pi * U / Prad;
+
+%% Calculate Efficiency
+Ae = Prad / Pfrad;
+
+%% Calculate Gain
+G = D * Ae;
+
+%% Plot Antenna Parameters in 1D
+% Extract directivity
+Dth = zeros( 1, size(thp, 2) );
+Dth( 1 : size(D, 2) ) = rot90( D(101, :), 2 );
+Dth( size(G, 2) + 1 : end ) = D(1, :);
+% Extract gain
+Gth = zeros( 1, size(thp, 2) );
+Gth( 1 : size(G, 2) ) = rot90( G(101, :), 2 );
+Gth( size(G, 2) + 1 : end ) = G(1, :);
+% Plot
+figure();
+plot(thp * 180 / pi, 10 * log10( Dth ), 'LineWidth', 3.0);
+hold on;
+plot(thp * 180 / pi, 10 * log10( Gth ), '--', 'LineWidth', 3.0);
+grid on;
+xlabel('\theta [deg]');
+ylabel('[dB]');
+xlim([min(thp * 180 / pi) max(thp * 180 / pi)]);
+xlim([-40 40]);
+ylim([-10 30]);
+legend('D','G');
