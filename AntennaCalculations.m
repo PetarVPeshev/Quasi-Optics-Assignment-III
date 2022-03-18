@@ -4,10 +4,12 @@ clc;
 
 %% Constants and Parameters
 % Indecies
-N = 500;                        % Number of sample points
+N = 100;                        % Number of sample points
 % Field Parameters
 f = 300 * 1e9;                  % Source frequency [Hz]
 R = 1;                          % Radial distance [m]
+p = [0 1 0];                    % Polarization of uniform current
+J0 = 1;                         % Amplitude of uniform current
 % Lens
 n = 3;
 th0 = 50 * pi / 180;            % Maximum inclination angle in lense [rad]
@@ -36,6 +38,18 @@ drho = rho(2) - rho(1);
 ph = linspace(eps, 2 * pi, N);
 dph = ph(2) - ph(1);
 [ RHO, PH ] = meshgrid( rho, ph );
+
+%% Theta and Phi-Components of Spherical Coordinates Outside Lense
+thf = linspace(eps, pi / 2, N);
+dthf = thf(2) - thf(1);
+phf = linspace(eps, 2 * pi, N);
+dphf = ph(2) - ph(1);
+[ THf, PHf ] = meshgrid( thf, phf );
+
+%% x, y, and z-Components of the wave-number
+KX = k * sin(THf) .* cos(PHf);
+KY = k * sin(THf) .* sin(PHf);
+KZ = k * cos(THf);
 
 %% Calculate Minimum Radial Distance
 rmin = D / ( 2 * sin(th0) );
@@ -68,3 +82,75 @@ Ef = Ef * R / exp(-1j * kd * R);
 [ J, M ] = calculateLensAperture( Ef, TH, PH, r, THt, THi, Tper, Tpar, ...
                                                                     Z, e );
 plotCurrent( J, RHO, PH, 'J' );
+
+%% Calculate Fourier Transform (FT) of Current
+Jft = calculateCylFTCurrent( J, KX, KY, RHO, PH );
+Jft = convertCylToCar(Jft, PHf);
+
+%% Calculate Spectral Green's Function (SGF)
+ej_SGF = calculateEJ_SGF( Z, k, KX, KY, KZ );
+
+%% Calculate Electric Far-Field
+E = calculateEFarfield( ej_SGF, Jft, k, R, THf, KZ );
+E = convertCarToSph(E, THf, PHf);
+plotFarfield(E, THf, PHf);
+caxis([-40, 0]);
+zlim([-150 0]);
+
+%% Calculate Uniform Aperture Current Distribution Fourier Transform (FT)
+Jun = circFTCurrent( k, J0, THf, D / 2, p );
+Jun = convertSphToCar(Jun, THf, PHf);
+
+%% Calculate Electric Far-Field of Uniform Aperture
+Eun = calculateEFarfield( ej_SGF, Jun, k, R, THf, KZ );
+Eun = convertCarToSph(Eun, THf, PHf);
+Eun( isnan(Eun) ) = 0;
+plotFarfield(Eun, THf, PHf);
+caxis([-40, 0]);
+zlim([-150 0]);
+
+%% Plot in 1D
+% Define Theta from - Theta_max to Theta_max
+thp = zeros( 1, 2 * size(THf, 2) );
+thp( size(THf, 2) + 1 : end ) = THf(1, :);
+thp( 1 : size(THf, 2) ) = - rot90( THf(1, :), 2 );
+% Extract E field magnitude and uniform E field
+Eth = zeros( 1, size(thp, 2) );
+Eth( size(E, 2) + 1 : end ) = sqrt( abs( E(51, :, 1) ).^2 + ...
+                           abs( E(51, :, 2) ).^2 + abs( E(51, :, 3) ).^2 );
+Eth( 1 : size(E, 2) ) = rot90(sqrt( abs( E(1, :, 1) ).^2 + ...
+                     abs( E(1, :, 2) ).^2 + abs( E(1, :, 3) ).^2 ), 2);
+Euth = zeros( 1, size(thp, 2) );
+Euth( size(E, 2) + 1 : end ) = sqrt( abs( Eun(51, :, 1) ).^2 + ...
+                       abs( Eun(51, :, 2) ).^2 + abs( Eun(51, :, 3) ).^2 );
+Euth( 1 : size(E, 2) ) = rot90(sqrt( abs( Eun(1, :, 1) ).^2 + ...
+                     abs( Eun(1, :, 2) ).^2 + abs( Eun(1, :, 3) ).^2 ), 2);
+% Plot (normalized to uniform current field maximum)
+figure();
+plot(thp * 180 / pi, 20 * log10( Eth ) - max( 20 * log10( Euth ) ), ...
+     'LineWidth', 3.0);
+hold on;
+plot(thp * 180 / pi, 20 * log10( Euth ) - max( 20 * log10( Euth ) ), ...
+     '--', 'LineWidth', 3.0);
+grid on;
+xlabel('\theta [deg]');
+ylabel('[dB]');
+xlim([min(thp * 180 / pi) max(thp * 180 / pi)]);
+ylim([-60 0]);
+legend('|E|', '|E_{un}|');
+title('XZ Plane');
+% Plot (normalized to own maximum)
+figure();
+plot(thp * 180 / pi, 20 * log10( Eth ) - max( 20 * log10( Eth ) ), ...
+     'LineWidth', 3.0);
+hold on;
+plot(thp * 180 / pi, 20 * log10( Euth ) - max( 20 * log10( Euth ) ), ...
+     '--', 'LineWidth', 3.0);
+grid on;
+xlabel('\theta [deg]');
+ylabel('[dB]');
+xlim([min(thp * 180 / pi) max(thp * 180 / pi)]);
+ylim([-40 0]);
+legend('|E|', '|E_{un}|');
+title('XZ Plane');
+

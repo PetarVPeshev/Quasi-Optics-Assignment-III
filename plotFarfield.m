@@ -30,4 +30,6 @@ function [ figSur ] = plotFarfield( F, TH, PH )
     ylabel('V');
     zlabel('|E| [dB]');
     zlim([-10 0]);
+    xticks((-1 : 0.2 : 1));
+    yticks((-1 : 0.2 : 1));
 end
