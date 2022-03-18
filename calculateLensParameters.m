@@ -1,4 +1,4 @@
-function [ e, a, b, c, thc, RHO, drho, PH, dph, TH, THi ] = calculateLensParameters( D, er, N )
+function [ e, a, b, c, thc, RHO, drho, PH, dph, TH, THi, r ] = calculateLensParameters( D, er, N )
 %calculateLensParameters This function calculates parameters of untruncated
 %elliptical lens
 %   Detailed explanation goes here
@@ -26,4 +26,6 @@ function [ e, a, b, c, thc, RHO, drho, PH, dph, TH, THi ] = calculateLensParamet
     TH = atan( RHO ./ Z );
     %% Calculate Incident Angle
     THi = acos( ( 1 - e * cos(TH) ) ./ sqrt( 1 + e^2 - 2 * e * cos(TH) ) );
+    %% Calculate Radial Distance
+    r = a * ( 1 - e^2 ) ./ ( 1 - e * cos(TH) );
 end

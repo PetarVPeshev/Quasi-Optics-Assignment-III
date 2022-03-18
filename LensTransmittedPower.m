@@ -26,7 +26,7 @@ D = 10 * wlen;                  % Diameter of lens [m]
 
 %% Calculate Lens Parameters
 [ e, a, b, c, thc, RHO, ...
-           drho, PH, dph, TH, THi ] = calculateLensParameters( D, erd, N );
+           drho, PH, dph, TH, THi, r ] = calculateLensParameters( D, erd, N );
 
 %% Calculate Fresnel Transmission Coefficiencts
 [ Tper, Tpar, THt ] = calculateFresnelTCoeff( THi, erd );
