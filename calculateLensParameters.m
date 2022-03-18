@@ -8,11 +8,11 @@ function [ e, a, b, c, thc, RHO, drho, PH, dph, TH, THi, r ] = calculateLensPara
     %% Calculate Critical Angle
     thc = asin(e);
     %% Calculate Maximum Inclination Angle
-    thmax = pi / 2 - thc;
+    th0 = pi / 2 - thc;
     %% Calculate Minimum Radial Distance
-    rmin = D / ( 2 * sin(thmax) );
+    rmin = D / ( 2 * sin(th0) );
     %% Calculate Lens Axes and Foci Distance
-    a = rmin * ( 1 - e * cos(thmax) ) / (1 - e ^ 2);
+    a = rmin * ( 1 - e * cos(th0) ) / (1 - e ^ 2);
     c = a * e;
     b = sqrt( a ^ 2 - c ^ 2);
     %% RHO and PHI of Cylindrical Coordinates
