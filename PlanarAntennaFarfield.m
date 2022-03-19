@@ -37,3 +37,25 @@ xlim([-0.5 0.5]);
 ylim([-0.5 0.5]);
 xticks((-0.5 : 0.1 : 0.5));
 yticks((-0.5 : 0.1 : 0.5));
+
+%% Plot Far-Field in 1D
+% Define Theta from - Theta_max to Theta_max
+thp = zeros( 1, 2 * size(TH, 2) );
+thp( size(TH, 2) + 1 : end ) = TH(1, :);
+thp( 1 : size(TH, 2) ) = - rot90( TH(1, :), 2 );
+% Extract E field magnitude
+Eth = zeros( 1, size(thp, 2) );
+Eth( 1 : size(Ef, 2) ) = rot90( sqrt( abs( Ef(251, :, 1) ).^2 + ...
+                  abs( Ef(251, :, 2) ).^2 + abs( Ef(251, :, 3) ).^2 ), 2 );
+Eth( size(Ef, 2) + 1 : end ) = sqrt( abs( Ef(1, :, 1) ).^2 + ...
+                           abs( Ef(1, :, 2) ).^2 + abs( Ef(1, :, 3) ).^2 );
+% Plot (normalized to own maximum)
+figure();
+plot(thp * 180 / pi, 20 * log10( Eth ) - max( 20 * log10( Eth ) ), ...
+     'LineWidth', 3.0);
+grid on;
+xlabel('\theta [deg]');
+ylabel('|E| [dB]');
+xlim([min(thp * 180 / pi) max(thp * 180 / pi)]);
+ylim([-40 0]);
+title('XZ Plane');

@@ -47,4 +47,4 @@ plot( th * 180 / pi, Prpar(1, :), 'LineWidth', 3.0 );
 grid on;
 xlabel('\theta_{i} [deg]'); 
 legend('P_{t}^{TE} / P_{i}^{TE}', 'P_{t}^{TM} / P_{t}^{TM}');
-xlim([0 max(th * 180 / pi)]);
+xlim([0 18]);

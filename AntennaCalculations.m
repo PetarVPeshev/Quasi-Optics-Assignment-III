@@ -81,7 +81,45 @@ Ef = Ef * R / exp(-1j * kd * R);
 %% Calculate Equivalent Electric Current
 [ J, M ] = calculateLensAperture( Ef, TH, PH, r, THt, THi, Tper, Tpar, ...
                                                                     Z, e );
-plotCurrent( J, RHO, PH, 'J' );
+plotCurrent( J, RHO, PHf, 'J' );
+
+%% Plot Far-Field in 1D
+% Define Theta from - Theta_max to Theta_max
+thj = zeros( 1, 2 * size(THf, 2) );
+thj( size(THf, 2) + 1 : end ) = THf(1, :);
+thj( 1 : size(THf, 2) ) = - rot90( THf(1, :), 2 );
+% Extract J magnitude
+Jth0 = zeros( 1, size(thj, 2) );
+Jth0( 1 : size(J, 2) ) = rot90( sqrt( abs( J(101, :, 1) ).^2 + ...
+                    abs( J(101, :, 2) ).^2 + abs( J(101, :, 3) ).^2 ), 2 );
+Jth0( size(J, 2) + 1 : end ) = sqrt( abs( J(1, :, 1) ).^2 + ...
+                             abs( J(1, :, 2) ).^2 + abs( J(1, :, 3) ).^2 );
+Jth45 = zeros( 1, size(thj, 2) );
+Jth45( 1 : size(J, 2) ) = rot90( sqrt( abs( J(125, :, 1) ).^2 + ...
+                    abs( J(125, :, 2) ).^2 + abs( J(125, :, 3) ).^2 ), 2 );
+Jth45( size(J, 2) + 1 : end ) = sqrt( abs( J(26, :, 1) ).^2 + ...
+                           abs( J(26, :, 2) ).^2 + abs( J(26, :, 3) ).^2 );
+Jth90 = zeros( 1, size(thj, 2) );
+Jth90( 1 : size(J, 2) ) = rot90( sqrt( abs( J(150, :, 1) ).^2 + ...
+                    abs( J(150, :, 2) ).^2 + abs( J(150, :, 3) ).^2 ), 2 );
+Jth90( size(J, 2) + 1 : end ) = sqrt( abs( J(51, :, 1) ).^2 + ...
+                           abs( J(51, :, 2) ).^2 + abs( J(51, :, 3) ).^2 );
+% Plot (normalized to own maximum)
+figure();
+plot(thj * 180 / pi, 20 * log10( Jth0 ) - max( 20 * log10( Jth0 ) ), ...
+     'LineWidth', 3.0);
+hold on;
+plot(thj * 180 / pi, 20 * log10( Jth45 ) - max( 20 * log10( Jth45 ) ), ...
+     '--', 'LineWidth', 3.0);
+hold on;
+plot(thj * 180 / pi, 20 * log10( Jth90 ) - max( 20 * log10( Jth90 ) ), ...
+     '-.', 'LineWidth', 3.0);
+grid on;
+xlabel('\theta [deg]');
+ylabel('|J| [dB]');
+xlim([-90 90]);
+ylim([-10 0]);
+legend('\phi = 0 deg','\phi = 45 deg','\phi = 90 deg');
 
 %% Calculate Fourier Transform (FT) of Current
 Jft = calculateCylFTCurrent( J, KX, KY, RHO, PH );
@@ -190,3 +228,4 @@ xlim([min(thp * 180 / pi) max(thp * 180 / pi)]);
 xlim([-40 40]);
 ylim([-10 30]);
 legend('D','G');
+title('XZ Plane');
