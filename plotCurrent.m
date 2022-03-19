@@ -31,6 +31,7 @@ function [ figSurX, figSurY ] = plotCurrent( J, RHO, PH, compText )
     ylabel('Y');
     zlabel(['|' compText '_{x}| [dB]']);
     zlim([-500 0]);
+    xticks( ( ( -5 * 1e-3 ) : ( 1 * 1e-3 ) : ( 5 * 1e-3 ) ) );
     title([compText '_{x}']);
     %% Plot 2D in XY Coordinates
     figSurY = figure();
@@ -46,5 +47,6 @@ function [ figSurX, figSurY ] = plotCurrent( J, RHO, PH, compText )
     ylabel('Y');
     zlabel(['|' compText '_{y}| [dB]']);
     zlim([-500 0]);
+    xticks( ( ( -5 * 1e-3 ) : ( 1 * 1e-3 ) : ( 5 * 1e-3 ) ) );
     title([compText '_{y}']);
 end
